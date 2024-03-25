@@ -8,7 +8,7 @@
   "is_local_process_zero": true,
   "is_world_process_zero": true,
   "log_history": [],
-  "logging_steps": 25,
+  "logging_steps": 6,
   "max_steps": 3,
   "num_input_tokens_seen": 0,
   "num_train_epochs": 3,

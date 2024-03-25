@@ -1,7 +1,7 @@
 {
     "model": "openai-community/gpt2",
-    "project_name": "autotrain-m1my7-ralz3",
-    "data_path": "autotrain-m1my7-ralz3/autotrain-data",
+    "project_name": "autotrain-2lnho-qrh5n",
+    "data_path": "autotrain-2lnho-qrh5n/autotrain-data",
     "train_split": "train",
     "valid_split": null,
     "add_eos_token": true,
@@ -42,6 +42,6 @@
     "text_column": "autotrain_text",
     "rejected_text_column": "autotrain_rejected_text",
     "push_to_hub": true,
-    "repo_id": "johnrraymond/autotrain-m1my7-ralz3",
+    "repo_id": "johnrraymond/autotrain-2lnho-qrh5n",
     "username": "johnrraymond"
 }

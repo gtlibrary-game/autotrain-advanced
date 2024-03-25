@@ -53,7 +53,7 @@ csv_path = f"{directory_path}/training.csv"
 # Write the parsed data to a CSV file
 with open(csv_path, mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
-    writer.writerow(["generated_narrative", "classifications"])  # Writing header
+    writer.writerow(["text", "text"])  # Writing header
     for row in extracted_data:
         writer.writerow(row)
 
