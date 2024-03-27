@@ -56,7 +56,11 @@ csv_path = f"training.csv"
 # Write the parsed data to a CSV file
 with open(csv_path, mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
-    writer.writerow(["text", "text", "label", "target"])  # Writing header
+    writer.writerow(["text", 
+                     "text",
+                     "label",
+                     "target"
+                     ])  # Writing header
     for row in extracted_data:
         writer.writerow(row)
 
