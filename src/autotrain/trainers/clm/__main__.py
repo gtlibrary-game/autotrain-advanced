@@ -148,7 +148,12 @@ def train(config):
         )
         tokenizer.chat_template = chat_template
     else:
-        tokenizer = AutoTokenizer.from_pretrained(config.model, token=config.token, trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(config.model, token=config.token, trust_remote_code=True,
+            #pad_token="<pad>",
+            #bos_token="<s>",
+            #eos_token="</s>",
+            #additional_special_tokens=["<pad>", "<s>", "</s>", "<|user|>", "<|assistant|>", "<|system|>"]
+        )
         if tokenizer.chat_template is None:
             tokenizer.chat_template = utils.DEFAULT_CHAT_TEMPLATE
 
@@ -547,6 +552,11 @@ def train(config):
     # save model card to output directory as README.md
     with open(f"{config.project_name}/README.md", "w") as f:
         f.write(model_card)
+
+    fastapi_app = utils.create_fastapi_app(config)
+
+    with open(f"{config.project_name}/app.py", "w") as f:
+        f.write(fastapi_app)
 
     if config.peft and config.merge_adapter:
         logger.info("Merging adapter weights...")

@@ -40,7 +40,10 @@ def parse_txt_files(file_paths):
                     plotting = line.replace("Plot Dynamics Classification:", "").strip()            
 
             if generated_text != "" and sentiment != "" and pacing != "" and plotting != "":
-                extracted_data.append((generated_text, f"{sentiment}, {pacing}, {plotting}"))
+                extracted_data.append(("<s><|user|>Reduce Narrative (sentiment, pacing, plotting): " + generated_text + "</s>",  # text
+                                       f"<|assistant|>Reduced Narrative: {sentiment}, {pacing}, {plotting}</s>",                # text
+                                       f"<|assistant|>Reduced Narrative: {sentiment}, {pacing}, {plotting}</s>",                # label   
+                                       f"<|assistant|>Reduced Narrative: {sentiment}, {pacing}, {plotting}</s>"))               # target
     
     return extracted_data
 
@@ -48,12 +51,12 @@ def parse_txt_files(file_paths):
 extracted_data = parse_txt_files(txt_files)
 
 # Define CSV file path for the training data
-csv_path = f"{directory_path}/training.csv"
+csv_path = f"training.csv"
 
 # Write the parsed data to a CSV file
 with open(csv_path, mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
-    writer.writerow(["text", "text"])  # Writing header
+    writer.writerow(["text", "text", "label", "target"])  # Writing header
     for row in extracted_data:
         writer.writerow(row)
 
