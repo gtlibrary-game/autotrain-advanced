@@ -29,7 +29,7 @@ with open("babbage-train-plus.jsonl", 'a', encoding='utf-8') as jsonl_file:
     for segment in segments:
         prompt = boilerplate + segment + boilerbutt
         completion = client.completions.create(
-            model="ft:davinci-002:personal:autoreply:97TOdVoJ",
+            model="ft:davinci-002:the-great-library:autoreply:97Z2aqM2",
             prompt=prompt,
             max_tokens=70,
             stop=["</s>", "\n"],

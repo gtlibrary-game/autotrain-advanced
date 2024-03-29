@@ -1,0 +1,151 @@
+---
+title: "Core Summary Workbook: In the Beginning..."
+author: "John R Raymond & Lawrence Stanley"
+date: "2024-03-29"
+output: html_document
+params:
+  args: babbage_csv_file
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r core}
+# Load necessary libraries
+#install.packages("ggplot2")
+#install.packages("tidyr")
+#install.packages("syuzhet")
+
+library(ggplot2)
+library(tidyr)
+library(syuzhet)
+
+
+file_path <- "babbage.csv"
+
+# Load the data
+data <- read.csv(file_path, header = FALSE, col.names = c("sent", "speed", "conflict"))
+head(data)
+
+
+sv_data_sent <- as.numeric(data$sent[2:length(data$sent)])
+head(sv_data_sent)
+
+plot(sv_data_sent)
+simple_plot(sv_data_sent, title = "Narrative")
+
+ft_values <- get_dct_transform(
+  sv_data_sent, 
+  low_pass_size = 3, 
+  x_reverse_len = 100,
+  #padding_factor = 2,
+  scale_vals = TRUE,
+  scale_range = FALSE
+)
+
+plot(
+  ft_values, 
+  type ="l", 
+  main ="Transformed Values", 
+  xlab = "Narrative Time", 
+  ylab = "Emotional Valence", 
+  col = "red"
+)
+
+
+conflict_data_sent <- as.numeric(data$conflict[2:length(data$conflict)])
+head(conflict_data_sent)
+
+plot(conflict_data_sent)
+simple_plot(conflict_data_sent, title = "Conflict")
+
+ft_values_conflict <- get_dct_transform(
+  conflict_data_sent, 
+  low_pass_size = 3, 
+  x_reverse_len = 100,
+  #padding_factor = 2,
+  scale_vals = TRUE,
+  scale_range = FALSE
+)
+
+plot(
+  ft_values_conflict, 
+  type ="l", 
+  main ="Transformed Values", 
+  xlab = "Narrative Time", 
+  ylab = "Emotional Valence", 
+  col = "blue"
+)
+
+
+pace_data_sent <- as.numeric(data$speed[2:length(data$speed)])
+head(pace_data_sent)
+
+plot(pace_data_sent)
+simple_plot(pace_data_sent, "Pacing")
+
+ft_values_pace <- get_dct_transform(
+  pace_data_sent, 
+  low_pass_size = 3, 
+  x_reverse_len = 100,
+  #padding_factor = 2,
+  scale_vals = TRUE,
+  scale_range = FALSE
+)
+
+plot(
+  ft_values_pace, 
+  type ="l", 
+  main ="Transformed Values", 
+  xlab = "Narrative Time", 
+  ylab = "Emotional Valence", 
+  col = "green"
+)
+
+
+
+# Assuming the 'syuzhet' package has already been used to calculate ft_values, ft_values_conflict, and ft_values_pace
+# Combine the transformed values into a single data frame for plotting
+df <- data.frame(
+  Time = 1:length(ft_values),
+  Sentiment = ft_values,
+  Conflict = ft_values_conflict,
+  Pace = ft_values_pace
+)
+
+# Melt the data frame to long format for ggplot
+df_long <- tidyr::pivot_longer(df, -Time, names_to = "Category", values_to = "Value")
+
+# Plot using ggplot
+p <- ggplot(df_long, aes(x = Time, y = Value, color = Category)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Narrative Analysis", x = "Narrative Time", y = "Transformed Value") +
+  scale_color_manual(values = c("Sentiment" = "red", "Conflict" = "blue", "Pace" = "green"))
+
+print(p)
+
+# Save the plot to disk
+ggsave("babbage.png", plot = p, width = 10, height = 6, dpi = 300)
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+#plot(pressure)
+simple_plot
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

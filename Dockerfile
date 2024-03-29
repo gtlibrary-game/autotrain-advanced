@@ -78,6 +78,10 @@ RUN conda run -p /app/env/ /app/env/bin/pip install flash-attn
 RUN conda run -p /app/env/ /app/env/bin/pip install deepspeed 
 
 RUN conda run -p /app/env/ /app/env/bin/pip install fastapi
+RUN conda run -p /app/env/ /app/env/bin/pip install nltk
+
+RUN pip install nltk
+RUN python -m nltk.downloader punkt
 
 #RUN conda run -p /app/env/ /app/env/bin/pip cache purge
 
