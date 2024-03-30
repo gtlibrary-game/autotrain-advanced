@@ -133,7 +133,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
     # Parse command line arguments for the count
     for i in range(args.count):
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, dir="aux-data", prefix="chat", suffix=".txt") as temp_file:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, dir=data_dir, prefix="chat", suffix=".txt") as temp_file:
             print(f"Generating conversation {i+1}, writing to: {temp_file.name}")
             handle_conversation(i, temp_file)
             temp_file_path = temp_file.name
