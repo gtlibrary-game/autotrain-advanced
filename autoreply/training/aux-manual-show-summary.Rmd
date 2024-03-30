@@ -1,0 +1,207 @@
+---
+title: "Enhanced Narrative Analysis with Syuzhet"
+author: "John R Raymond"
+date: "2024-03-29"
+output: html_document
+params:
+  args: aux_babbage_csv_file
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load necessary libraries
+library(ggplot2)
+library(tidyr)
+library(syuzhet)
+
+
+fine_plots <- function (raw_values, title = "Syuzhet Plot", legend_pos = "top", 
+    lps = 10, window = 0.1, plot_mask=1) 
+{
+    wdw <- round(length(raw_values) * window)
+    rolled <- rescale(zoo::rollmean(raw_values, k = wdw, fill = 0))
+    half <- round(wdw/2)
+    rolled[1:half] <- NA
+    end <- length(rolled) - half
+    rolled[end:length(rolled)] <- NA
+    trans <- get_dct_transform(raw_values, low_pass_size = lps, 
+        x_reverse_len = length(raw_values), scale_range = T)
+    x <- 1:length(raw_values)
+    y <- raw_values
+    raw_lo <- stats::loess(y ~ x, span = 0.5)
+    low_line <- rescale(stats::predict(raw_lo))
+    #graphics::par(mfrow = c(2, 1))
+    graphics::plot(low_line, type = "l", ylim = c(-1, 1), main = title, 
+        xlab = "Full Narrative Time", ylab = "Scaled Sentiment", 
+        col = "blue", lty = 2)
+    graphics::lines(rolled, col = "grey", lty = 2)
+    graphics::lines(trans, col = "red")
+    graphics::abline(h = 0, lty = 3)
+    if(plot_mask == 1) {
+      graphics::legend(legend_pos, c("Loess Smooth", "Rolling Mean", 
+          "Syuzhet DCT"), lty = 1, lwd = 1, col = c("blue", "grey", 
+          "red"), bty = "n", cex = 0.75)
+    }
+    
+    if(plot_mask == 2){
+      normed_trans <- get_dct_transform(raw_values, scale_range = T, 
+          low_pass_size = 5)
+      graphics::plot(normed_trans, type = "l", ylim = c(-1, 1), 
+          main = "Simplified Macro Shape", xlab = "Normalized Narrative Time", 
+          ylab = "Scaled Sentiment", col = "red")
+      graphics::par(mfrow = c(1, 1))
+    }
+}
+
+
+
+aux_babbage_csv_file <- "aux-babbage.csv"
+print("warning: fixme: this script is running from somwhere known!")
+
+# Define file path from parameters
+#file_path <- params$args             #FIXME: Need to check to see if arg is set otherwise don't use.
+file_path <- aux_babbage_csv_file
+
+# Load the data
+data <- read.csv(file_path, header = TRUE)
+head(data)
+
+# Function to calculate and plot DCT for each narrative metric
+plot_dct_for_metric <- function(metric_data, title, color) {
+  ft_values <- get_dct_transform(
+    metric_data, 
+    low_pass_size = 3, 
+    x_reverse_len = length(metric_data),
+    #scale_vals = TRUE,
+    scale_range = TRUE
+  )
+  
+  
+  
+  data.frame(Time = 1:length(ft_values), Value = ft_values) %>%
+    ggplot(aes(x = Time, y = Value, group = 1)) +
+    geom_line(color = color) +
+    theme_minimal() +
+    labs(title = title, x = "Narrative Time", y = "Transformed Value")
+  
+}
+
+# Metrics and their corresponding colors for visualization
+metrics_colors <- list(
+  "Clarity of Expression" = "red",
+  "Appropriateness of Diction" = "blue",
+  "Engagement and Interest" = "green",
+  "Use of Clich" = "purple",
+  "Narrative Flow" = "orange",
+  "Stylistic Elegance" = "brown",
+  "Aesthetic Appeal" = "pink"
+)
+
+metric_name <- "Aesthetic Appeal"
+# Iterate through each metric and plot
+for(metric_name in names(metrics_colors)) {
+  metric_data <- as.numeric(data[,gsub(" ", "_", tolower(metric_name))])
+  print(head(metric_data))
+  plot <- plot_dct_for_metric(metric_data, metric_name, metrics_colors[[metric_name]])
+  print(plot)
+  
+  print(fine_plots(metric_data, title=metric_name, plot_mask=1))
+}
+
+
+```
+
+
+```{r factors_analysis}
+
+# Perform PCA
+pca_result <- prcomp(data, scale. = TRUE)
+
+# Examine the summary of the PCA results to see the importance of the components
+summary(pca_result)
+
+# Extracting the scores of the first two principal components
+scores <- pca_result$x[, 1:2]
+
+# Optionally, we can visualize the first two principal components
+ggplot(data = as.data.frame(scores), aes(x = PC1, y = PC2)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "PCA: First Two Principal Components",
+       x = "First Principal Component (PC1)",
+       y = "Second Principal Component (PC2)")
+
+# To look at the contribution of each original variable to the principal components
+loadings <- pca_result$rotation[, 1:6]
+
+# View the loadings
+print(loadings)
+
+```
+
+
+```{r loadings}
+
+# Calculate the variance explained by each principal component
+variance_explained <- pca_result$sdev^2
+total_variance <- sum(variance_explained)
+variance_explained_percent <- variance_explained / total_variance * 100
+
+# Create a dataframe for plotting
+variance_df <- data.frame(PC = 1:length(variance_explained), Variance = variance_explained_percent)
+
+# Plot the variance explained by each principal component
+library(ggplot2)
+
+ggplot(variance_df, aes(x = PC, y = Variance)) +
+  geom_bar(stat = "identity", fill = 'steelblue') +
+  theme_minimal() +
+  labs(title = "Variance Explained by Each Principal Component",
+       x = "Principal Component",
+       y = "Variance Explained (%)")
+
+# Cumulative Variance Explained Plot
+variance_df$CumulativeVariance <- cumsum(variance_explained_percent)
+
+ggplot(variance_df, aes(x = PC, y = CumulativeVariance)) +
+  geom_line(color = 'steelblue') + geom_point(color = 'red') +
+  theme_minimal() +
+  labs(title = "Cumulative Variance Explained by Principal Components",
+       x = "Principal Component",
+       y = "Cumulative Variance Explained (%)")
+
+```
+
+```{r scores}
+
+# Extract the PCA scores
+pca_scores <- pca_result$x
+
+head(pca_scores)
+head(pca_scores[, 1])
+metric_name <- paste("Principal Component", 1)
+metric_name
+
+pc_colors <- c("red", "green", "blue", "pink", "orange", "brown" ,"purple")
+pc_colors
+
+# You can adjust this loop to match the number of principal components you're interested in
+#for(i in 1:ncol(pca_scores)) {
+for(i in 1:4) {
+  pc_data <- pca_scores[, i]
+  metric_name <- paste("Principal Component", i, 
+                       " explains ", as.integer(variance_explained_percent[i]), "%")
+  
+  # Use the provided plotting function for each principal component
+  print(head(pc_data))
+  plot_dct <- plot_dct_for_metric(pc_data, metric_name, 
+                                  pc_colors[i])
+  print(plot_dct)
+  
+  # Assuming fine_plots is another plotting function you wish to use
+  print(fine_plots(pc_data, title = metric_name, plot_mask = 1))
+}
+
+
+```
